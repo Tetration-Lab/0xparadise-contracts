@@ -21,11 +21,6 @@ contract Game {
             islanderInfos[i].hp = Constants.INITIAL_HP;
             islanderInfos[i].atk = Constants.INITIAL_ATK;
             islanderInfos[i].def = Constants.INITIAL_DEF;
-            for (uint j = 0; j < islanders.length; ++j) {
-                islanderInfos[i].attacksCount.push(0);
-                islanderInfos[i].attackedCounts.push(0);
-                islanderInfos[i].healCounts.push(0);
-            }
         }
     }
 
