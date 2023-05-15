@@ -12,20 +12,25 @@ struct IslanderInfo {
     uint256 hp;
     uint256 atk;
     uint256 def;
-    uint32 food;
-    uint32 wood;
-    uint32 rock;
     uint32 pearl;
-    BuildingObj buildingLevel;
-    ResourceObj[] harvestPlan;
-    BuildingObj[] commuPlan;
+    ResourcesUnit resources;
+    Buildings buildingLevel;
+    Resources[] harvestPlan;
+    Buildings[] communityBuildingPlan;
+    Buildings[] personalBuildingPlan;
     uint32[] kills;
     uint32[] attacks;
     uint32[] attacked;
     uint32[] heals;
 }
 
-struct ResourceObj {
+struct ResourcesUnit {
+    uint32 rock;
+    uint32 wood;
+    uint32 food;
+}
+
+struct Resources {
     uint32 rock;
     uint32 wood;
     uint32 fruit;
@@ -34,24 +39,24 @@ struct ResourceObj {
     uint32 pearl;
 }
 
-struct BuildingObj {
-    ResourceObj harvest;
-    uint32 survival;
-    uint32 protection;
-    uint32 score;
-    uint32 atk;
-    uint32 def;
+struct Buildings {
+    ResourcesUnit harvest; // Wood
+    uint32 survival; // Wood
+    uint32 protection; // Wood
+    uint32 statue; // Rock
+    uint32 atk; // Rock
+    uint32 def; // Rock
 }
 
 struct Resource {
     uint32 supply; // just suppy
-    uint32 baseHarvest; // base harvest per time unit spend
-    uint32 prevDemand; // demand last turn
-    int32 prevSupplyChange; // supply change last turn
+    // uint32 baseHarvest; // base harvest per time unit spend
+    uint32 prevHarvest; // harvest last turn
+    uint32 prevRegen; // regen last turn
 }
 
 struct World {
-    BuildingObj buildingLevel;
+    Buildings buildings;
     Resource rock;
     Resource wood;
     Resource fruit;

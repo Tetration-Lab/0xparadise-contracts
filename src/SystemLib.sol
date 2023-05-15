@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "./StuffLib.sol";
 import "./Constants.sol";
 
 library SystemLib {
@@ -99,13 +100,16 @@ library SystemLib {
     // if supply higher than EFFECTIVE_MINING_RATIO x totalHarvastPoint will get full harvest.
     // otherwise will get harvest per share pernalty
     function harvestPerShare(
-        uint supply,
-        uint totalHarvastPoint
-    ) public pure returns (uint) {
+        uint32 supply,
+        uint32 totalHarvestPoint
+    ) public pure returns (uint32) {
         return
-            Math.min(
-                supply / (totalHarvastPoint * Constants.EFFECTIVE_MINING_RATIO),
-                Constants.ONE
+            uint32(
+                Math.min(
+                    supply /
+                        (totalHarvestPoint * Constants.EFFECTIVE_MINING_RATIO),
+                    Constants.ONE
+                )
             );
     }
 
@@ -120,5 +124,71 @@ library SystemLib {
 
     function probHit(uint prob, uint randomness) public pure returns (bool) {
         return randomness % 100 < prob;
+    }
+
+    // Bonus function for harvest by individual building, returns bonus action point for that harvest
+    // 1_000 = 1%
+    function individualHarvestBonus(
+        uint32 resource
+    ) public pure returns (uint32 bonusActionPointPct) {
+        return 0;
+    }
+
+    // Bonus function for harvest by community building, returns bonus action point for that harvest
+    // 1_000 = 1%
+    function communityHarvestBonus(
+        uint32 resource
+    ) public pure returns (uint32 bonusActionPointPct) {
+        return 0;
+    }
+
+    // calculate normalized harvest action points
+    function normalizeWithBonus(
+        Resources memory plan,
+        ResourcesUnit memory individualBonus,
+        ResourcesUnit memory communityBonus
+    ) public pure returns (Resources memory) {
+        uint base = 0;
+        base +=
+            plan.rock +
+            (plan.rock *
+                (individualHarvestBonus(individualBonus.rock) +
+                    communityHarvestBonus(communityBonus.rock))) /
+            Constants.ONE;
+        base +=
+            plan.wood +
+            (plan.wood *
+                (individualHarvestBonus(individualBonus.wood) +
+                    communityHarvestBonus(communityBonus.wood))) /
+            Constants.ONE;
+        base +=
+            plan.fruit +
+            (plan.fruit *
+                (individualHarvestBonus(individualBonus.food) +
+                    communityHarvestBonus(communityBonus.food))) /
+            Constants.ONE;
+        base +=
+            plan.animal +
+            (plan.animal *
+                (individualHarvestBonus(individualBonus.food) +
+                    communityHarvestBonus(communityBonus.food))) /
+            Constants.ONE;
+        base +=
+            plan.fish +
+            (plan.fish *
+                (individualHarvestBonus(individualBonus.food) +
+                    communityHarvestBonus(communityBonus.food))) /
+            Constants.ONE;
+        base += plan.pearl;
+
+        return
+            Resources({
+                rock: uint32((plan.rock * Constants.ACTION_POINT) / base),
+                wood: uint32((plan.wood * Constants.ACTION_POINT) / base),
+                fruit: uint32((plan.fruit * Constants.ACTION_POINT) / base),
+                animal: uint32((plan.animal * Constants.ACTION_POINT) / base),
+                fish: uint32((plan.fish * Constants.ACTION_POINT) / base),
+                pearl: uint32((plan.pearl * Constants.ACTION_POINT) / base)
+            });
     }
 }
