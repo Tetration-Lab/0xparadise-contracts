@@ -6,21 +6,21 @@ interface IIslander {
     function planHarvest(
         World memory w,
         IslanderInfo memory self
-    ) external returns (ResourceObj memory);
+    ) external pure returns (ResourceObj memory);
 
     function planBuildCommu(
         World memory w,
         IslanderInfo memory self
-    ) external returns (BuildingObj memory);
+    ) external pure returns (BuildingObj memory);
 
     function planBuildSelf(
         World memory w,
         IslanderInfo memory self
-    ) external returns (BuildingObj memory);
+    ) external pure returns (BuildingObj memory);
 
     function planVisit(
         World memory w,
         IslanderInfo calldata self,
         IslanderInfo calldata others
-    ) external returns (Action);
+    ) external pure returns (Action);
 }

@@ -19,9 +19,10 @@ struct IslanderInfo {
     BuildingObj buildingLevel;
     ResourceObj[] harvestPlan;
     BuildingObj[] commuPlan;
-    int256[] attacksCount;
-    int256[] attackedCounts;
-    int256[] healCounts;
+    uint32[] kills;
+    uint32[] attacks;
+    uint32[] attacked;
+    uint32[] heals;
 }
 
 struct ResourceObj {
@@ -34,19 +35,19 @@ struct ResourceObj {
 }
 
 struct BuildingObj {
+    ResourceObj harvest;
     uint32 survival;
     uint32 protection;
-    ResourceObj harvest;
     uint32 score;
     uint32 atk;
     uint32 def;
 }
 
 struct Resource {
-    uint supply; // just suppy
-    uint baseHarvest; // base harvest per time unit spend
-    int dSupplyTm1; // supply change last turn
-    int demandTm1; // demand last turn
+    uint32 supply; // just suppy
+    uint32 baseHarvest; // base harvest per time unit spend
+    uint32 prevDemand; // demand last turn
+    int32 prevSupplyChange; // supply change last turn
 }
 
 struct World {
