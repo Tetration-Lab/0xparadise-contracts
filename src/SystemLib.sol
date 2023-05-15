@@ -2,12 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "./Constants.sol";
 
 library SystemLib {
-    uint constant ONE = 1_000;
-    uint constant BASE_DAMAGE = 1_000;
-    uint constant INITIATIVE_BONUS = 1_200;
-
     // simulate lotka volterra equation aka predator prey model
     // https://en.m.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
     // reuturn dX, dY
@@ -19,8 +16,10 @@ library SystemLib {
         uint gramma, // predator growth rate
         uint delta // predator decay rate
     ) public pure returns (int, int) {
-        int dx = int((alpha * x) / ONE) - int((((beta * x) / ONE) * y) / ONE);
-        int dy = int((((gramma * x) / ONE) * y) / ONE) - int((delta * y) / ONE);
+        int dx = int((alpha * x) / Constants.ONE) -
+            int((((beta * x) / Constants.ONE) * y) / Constants.ONE);
+        int dy = int((((gramma * x) / Constants.ONE) * y) / Constants.ONE) -
+            int((delta * y) / Constants.ONE);
         return (dx, dy);
     }
 
@@ -30,7 +29,7 @@ library SystemLib {
         uint r, // growth rate
         uint k // carrying capacity
     ) public pure returns (uint) {
-        return (((r * x) / ONE) * (k - x)) / k;
+        return (((r * x) / Constants.ONE) * (k - x)) / k;
     }
 
     // simulate production growth with carrying capacity
@@ -42,7 +41,7 @@ library SystemLib {
         uint r, // growth rate
         uint k // carrying capacity
     ) public pure returns (uint) {
-        return (((r * x) / ONE) * (k - y)) / k;
+        return (((r * x) / Constants.ONE) * (k - y)) / k;
     }
 
     // simmulate player battle damage
@@ -53,13 +52,16 @@ library SystemLib {
         uint defenderAtk, // defender atk
         uint defenderDef // defender def
     ) public pure returns (uint, uint) {
-        uint attackerHPLoss = defenderAtk > attackerDef + BASE_DAMAGE
+        uint attackerHPLoss = defenderAtk > attackerDef + Constants.BASE_DAMAGE
             ? defenderAtk - attackerDef
-            : BASE_DAMAGE;
-        uint defenderHPLoss = (attackerAtk * INITIATIVE_BONUS) / ONE >
-            defenderDef + BASE_DAMAGE
-            ? (attackerAtk * INITIATIVE_BONUS) / ONE - defenderDef
-            : BASE_DAMAGE;
+            : Constants.BASE_DAMAGE;
+        uint defenderHPLoss = (attackerAtk * Constants.INITIATIVE_BONUS) /
+            Constants.ONE >
+            defenderDef + Constants.BASE_DAMAGE
+            ? (attackerAtk * Constants.INITIATIVE_BONUS) /
+                Constants.ONE -
+                defenderDef
+            : Constants.BASE_DAMAGE;
         return (attackerHPLoss, defenderHPLoss);
     }
 
@@ -86,23 +88,25 @@ library SystemLib {
         uint damage // damage to distribute
     ) public pure returns (uint) {
         uint totalDef = communityDef + personalDef;
-        uint finalDamage = damage > totalDef ? damage - totalDef : BASE_DAMAGE;
+        uint finalDamage = damage > totalDef
+            ? damage - totalDef
+            : Constants.BASE_DAMAGE;
         return finalDamage;
     }
 
     // harvest reusult per work unit
     // if low resource compare to demand, will reduce harvest and harvest per share
-    // if supply higher than 2 x totalHarvastPoint will get full harvest.
+    // if supply higher than EFFECTIVE_MINING_RATIO x totalHarvastPoint will get full harvest.
     // otherwise will get harvest per share pernalty
     function harvestPerShare(
         uint supply,
         uint totalHarvastPoint
     ) public pure returns (uint) {
-        if (supply > totalHarvastPoint * 2) {
-            return totalHarvastPoint;
-        }
-        Math.log2(totalHarvastPoint);
-        return (supply * totalHarvastPoint) / (totalHarvastPoint * 2);
+        return
+            Math.min(
+                supply / (totalHarvastPoint * Constants.EFFECTIVE_MINING_RATIO),
+                Constants.ONE
+            );
     }
 
     // calculate buildinmg stat in sqrt scale
@@ -111,7 +115,7 @@ library SystemLib {
         uint base,
         uint multiplier
     ) public pure returns (uint) {
-        return (Math.sqrt((base + progress) / ONE) * multiplier);
+        return (Math.sqrt((base + progress) / Constants.ONE) * multiplier);
     }
 
     function probHit(uint prob, uint randomness) public pure returns (bool) {

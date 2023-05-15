@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
+
 import "./StuffLib.sol";
 import "./IIslander.sol";
+import "./Constants.sol";
 
 contract Game {
     uint256 public randomness;
@@ -16,9 +18,9 @@ contract Game {
         islanders = _islanders;
         for (uint i = 0; i < islanders.length; ++i) {
             islanderInfos[i].idx = uint8(i);
-            islanderInfos[i].hp = 1000;
-            islanderInfos[i].atk = 10;
-            islanderInfos[i].def = 10;
+            islanderInfos[i].hp = Constants.INITIAL_HP;
+            islanderInfos[i].atk = Constants.INITIAL_ATK;
+            islanderInfos[i].def = Constants.INITIAL_DEF;
             for (uint j = 0; j < islanders.length; ++j) {
                 islanderInfos[i].attacksCount.push(0);
                 islanderInfos[i].attackedCounts.push(0);
