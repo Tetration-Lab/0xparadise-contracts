@@ -10,9 +10,9 @@ contract Game {
     event Dead(uint8 idx);
     event Attack(uint8 idx, uint8 targetIdx, uint damageAtk, uint damageDef);
     event Heal(uint8 idx, uint8 targetIdx, uint heal);
-    event BuildCommu(uint8 idx, BuildingObj plan);
-    event BuildPersonal(uint8 idx, BuildingObj plan);
-    event Harvest(uint8 idx, ResourceObj harvest);
+    event BuildCommu(uint8 idx, Buildings plan);
+    event BuildPersonal(uint8 idx, Buildings plan);
+    event Harvest(uint8 idx, Resources harvest);
     event Disaster(uint damage);
     event WorldUpdate(World world);
 
