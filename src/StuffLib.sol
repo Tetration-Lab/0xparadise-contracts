@@ -3,16 +3,15 @@ pragma solidity ^0.8.17;
 
 enum Action {
     Attack,
-    Heal,
+    // Heal,
     Nothing
 }
 
 struct IslanderInfo {
     uint8 idx;
-    uint256 hp;
-    uint256 atk;
-    uint256 def;
+    uint32 hp;
     uint32 pearl;
+    uint32 dayLived;
     ResourcesUnit resources;
     Buildings buildings;
     Resources[] harvestPlan;

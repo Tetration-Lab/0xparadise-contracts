@@ -34,8 +34,6 @@ contract Game {
         for (uint i = 0; i < _islanders.length; ++i) {
             islanderInfos[i].idx = uint8(i);
             islanderInfos[i].hp = Constants.INITIAL_HP;
-            islanderInfos[i].atk = Constants.INITIAL_ATK;
-            islanderInfos[i].def = Constants.INITIAL_DEF;
         }
     }
 
@@ -62,6 +60,9 @@ contract Game {
 
         // Get harvest plan for each islander
         for (uint i = 0; i < islanders.length; ++i) {
+            // Skip dead islanders
+            if (islanderInfos[i].hp == 0) continue;
+
             try islanders[i].planHarvest(world, islanderInfos[i]) returns (
                 Resources memory plan
             ) {
@@ -137,16 +138,24 @@ contract Game {
         for (uint i = 0; i < islanders.length; ++i) {
             Resources memory harvestPlan = harvestPlans[i];
             IslanderInfo storage islander = islanderInfos[i];
+
+            // Skip dead islanders
+            if (islander.hp == 0) continue;
+
             islander.pearl += harvestPlan.pearl * pearlHarvestPerShare;
             islander.resources.rock += harvestPlan.rock * rockHarvestPerShare;
             islander.resources.wood += harvestPlan.wood * woodHarvestPerShare;
-            islander.resources.food +=
-                harvestPlan.fruit *
-                fruitHarvestPerShare +
-                harvestPlan.animal *
-                animalHarvestPerShare +
-                harvestPlan.fish *
-                fishHarvestPerShare;
+            islander.resources.food += uint32(
+                ((Constants.FOOD_UNIT_PER_FRUIT_PCT *
+                    harvestPlan.fruit *
+                    fruitHarvestPerShare) +
+                    (Constants.FOOD_UNIT_PER_MEAT_PCT *
+                        harvestPlan.animal *
+                        animalHarvestPerShare) +
+                    (Constants.FOOD_UNIT_PER_FISH_PCT *
+                        harvestPlan.fish *
+                        fishHarvestPerShare)) / Constants.ONE
+            );
         }
     }
 
@@ -157,6 +166,10 @@ contract Game {
                 islanders[i].planCommunityBuild(world, islanderInfos[i])
             returns (Buildings memory plan) {
                 IslanderInfo storage islander = islanderInfos[i];
+
+                // Skip dead islanders
+                if (islander.hp == 0) continue;
+
                 Buildings storage worldBuildings = world.buildings;
 
                 // Save islander latest community building plan
@@ -221,6 +234,9 @@ contract Game {
             returns (Buildings memory plan) {
                 IslanderInfo storage islander = islanderInfos[i];
 
+                // Skip dead islanders
+                if (islander.hp == 0) continue;
+
                 // Save islander latest personal building plan
                 islander.personalBuildingPlan.push(plan);
 
@@ -275,7 +291,79 @@ contract Game {
         }
     }
 
-    function visitPhase() internal {}
+    function visitPhase() internal {
+        int32[] memory healthDiffs = new int32[](islanders.length);
+        for (uint i = 0; i < islanders.length; ++i) {
+            for (uint j = 0; j < islanders.length; ++j) {
+                if (i == j) continue;
+
+                IslanderInfo memory islander_self = islanderInfos[i];
+                IslanderInfo memory islander_other = islanderInfos[j];
+
+                // Skip dead islanders
+                if (islander_self.hp == 0 || islander_other.hp == 0) continue;
+
+                (
+                    uint32 damageDealtIfAttack,
+                    uint32 damageTakenIfAttack
+                ) = SystemLib.battleDamage(
+                        SystemLib.individualAttackBonus(
+                            islander_self.buildings.atk
+                        ),
+                        SystemLib.individualDefenseBonus(
+                            islander_self.buildings.def
+                        ),
+                        SystemLib.individualAttackBonus(
+                            islander_other.buildings.atk
+                        ),
+                        SystemLib.individualDefenseBonus(
+                            islander_other.buildings.def
+                        )
+                    );
+
+                try
+                    islanders[i].planVisit(
+                        world,
+                        islander_self,
+                        islander_other,
+                        damageDealtIfAttack,
+                        damageTakenIfAttack
+                    )
+                returns (Action action) {
+                    // TODO: handle other type of action
+                    if (action == Action.Attack) {
+                        // Attack
+                        // Add damage to self and other islander
+                        healthDiffs[i] -= int32(damageTakenIfAttack);
+                        healthDiffs[j] -= int32(damageDealtIfAttack);
+                    }
+                } catch {}
+            }
+        }
+
+        for (uint i = 0; i < islanders.length; ++i) {
+            IslanderInfo storage islander = islanderInfos[i];
+
+            // Skip dead islanders
+            if (islander.hp == 0) continue;
+
+            int32 diff = healthDiffs[i];
+            if (diff > 0) {
+                // Heal
+                islander.hp += uint32(diff);
+            } else if (diff < 0) {
+                uint32 damage = uint32(diff);
+                // Damage
+                if (damage >= islander.hp) {
+                    // Dead
+                    islander.hp = 0;
+                } else {
+                    // Survive
+                    islander.hp -= damage;
+                }
+            }
+        }
+    }
 
     function worldUpdate() internal {}
 }

@@ -21,6 +21,8 @@ interface IIslander {
     function planVisit(
         World memory w,
         IslanderInfo calldata self,
-        IslanderInfo calldata others
+        IslanderInfo calldata other,
+        uint32 damageDealtIfAttack,
+        uint32 damageTakenIfAttack
     ) external pure returns (Action);
 }

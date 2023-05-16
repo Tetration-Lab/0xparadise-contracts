@@ -48,22 +48,22 @@ library SystemLib {
     // simmulate player battle damage
     // return attackerHPLoss, defenderDamage
     function battleDamage(
-        uint attackerAtk, // attacker atk
-        uint attackerDef, // attacker def
-        uint defenderAtk, // defender atk
-        uint defenderDef // defender def
-    ) public pure returns (uint, uint) {
+        uint32 attackerAtk, // attacker atk
+        uint32 attackerDef, // attacker def
+        uint32 defenderAtk, // defender atk
+        uint32 defenderDef // defender def
+    ) public pure returns (uint32, uint32) {
         uint attackerHPLoss = defenderAtk > attackerDef + Constants.BASE_DAMAGE
             ? defenderAtk - attackerDef
             : Constants.BASE_DAMAGE;
-        uint defenderHPLoss = (attackerAtk * Constants.INITIATIVE_BONUS) /
+        uint defenderHPLoss = (attackerAtk * Constants.INITIATIVE_BONUS_PCT) /
             Constants.ONE >
             defenderDef + Constants.BASE_DAMAGE
-            ? (attackerAtk * Constants.INITIATIVE_BONUS) /
+            ? (attackerAtk * Constants.INITIATIVE_BONUS_PCT) /
                 Constants.ONE -
                 defenderDef
             : Constants.BASE_DAMAGE;
-        return (attackerHPLoss, defenderHPLoss);
+        return (uint32(attackerHPLoss), uint32(defenderHPLoss));
     }
 
     // simulate disaster. if hit return damage in range. else return 0. cal prob by hash of block
@@ -190,5 +190,21 @@ library SystemLib {
                 fish: uint32((plan.fish * Constants.ACTION_POINT) / base),
                 pearl: uint32((plan.pearl * Constants.ACTION_POINT) / base)
             });
+    }
+
+    // Bonus attack from individual building
+    // 1_000 = 1%
+    function individualAttackBonus(
+        uint32 resource
+    ) public pure returns (uint32 bonusAttackPct) {
+        return 0;
+    }
+
+    // Bonus defense from individual building
+    // 1_000 = 1%
+    function individualDefenseBonus(
+        uint32 resource
+    ) public pure returns (uint32 bonusDefensePct) {
+        return 0;
     }
 }
