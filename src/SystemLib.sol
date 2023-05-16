@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "./StuffLib.sol";
+import "./BonusLib.sol";
 import "./Constants.sol";
 
 library SystemLib {
@@ -113,33 +114,8 @@ library SystemLib {
             );
     }
 
-    // calculate buildinmg stat in sqrt scale
-    function resource2Stat(
-        uint progress,
-        uint base,
-        uint multiplier
-    ) public pure returns (uint) {
-        return (Math.sqrt((base + progress) / Constants.ONE) * multiplier);
-    }
-
     function probHit(uint prob, uint randomness) public pure returns (bool) {
         return randomness % 100 < prob;
-    }
-
-    // Bonus function for harvest by individual building, returns bonus action point for that harvest
-    // 1_000 = 1%
-    function individualHarvestBonus(
-        uint32 resource
-    ) public pure returns (uint32 bonusActionPointPct) {
-        return 0;
-    }
-
-    // Bonus function for harvest by community building, returns bonus action point for that harvest
-    // 1_000 = 1%
-    function communityHarvestBonus(
-        uint32 resource
-    ) public pure returns (uint32 bonusActionPointPct) {
-        return 0;
     }
 
     // calculate normalized harvest action points
@@ -149,62 +125,68 @@ library SystemLib {
         ResourcesUnit memory communityBonus
     ) public pure returns (Resources memory) {
         uint base = 0;
-        base +=
-            plan.rock +
-            (plan.rock *
-                (individualHarvestBonus(individualBonus.rock) +
-                    communityHarvestBonus(communityBonus.rock))) /
-            Constants.ONE;
-        base +=
-            plan.wood +
-            (plan.wood *
-                (individualHarvestBonus(individualBonus.wood) +
-                    communityHarvestBonus(communityBonus.wood))) /
-            Constants.ONE;
-        base +=
-            plan.fruit +
-            (plan.fruit *
-                (individualHarvestBonus(individualBonus.food) +
-                    communityHarvestBonus(communityBonus.food))) /
-            Constants.ONE;
-        base +=
-            plan.animal +
-            (plan.animal *
-                (individualHarvestBonus(individualBonus.food) +
-                    communityHarvestBonus(communityBonus.food))) /
-            Constants.ONE;
-        base +=
-            plan.fish +
-            (plan.fish *
-                (individualHarvestBonus(individualBonus.food) +
-                    communityHarvestBonus(communityBonus.food))) /
-            Constants.ONE;
-        base += plan.pearl;
+
+        uint rock = (plan.rock *
+            Constants.ACTION_POINT *
+            (Constants.SQUARED_ONE +
+                BonusLib.individualHarvestBonus(individualBonus.rock) +
+                BonusLib.communityHarvestBonus(communityBonus.rock))) /
+            Constants.SQUARED_ONE;
+        uint wood = (plan.wood *
+            Constants.ACTION_POINT *
+            (Constants.SQUARED_ONE +
+                BonusLib.individualHarvestBonus(individualBonus.wood) +
+                BonusLib.communityHarvestBonus(communityBonus.wood))) /
+            Constants.SQUARED_ONE;
+        uint fruit = (plan.fruit *
+            Constants.ACTION_POINT *
+            (Constants.SQUARED_ONE +
+                BonusLib.individualHarvestBonus(individualBonus.food) +
+                BonusLib.communityHarvestBonus(communityBonus.food))) /
+            Constants.SQUARED_ONE;
+        uint animal = (plan.animal *
+            Constants.ACTION_POINT *
+            (Constants.SQUARED_ONE +
+                BonusLib.individualHarvestBonus(individualBonus.food) +
+                BonusLib.communityHarvestBonus(communityBonus.food))) /
+            Constants.SQUARED_ONE;
+        uint fish = (plan.fish *
+            Constants.ACTION_POINT *
+            (Constants.SQUARED_ONE +
+                BonusLib.individualHarvestBonus(individualBonus.food) +
+                BonusLib.communityHarvestBonus(communityBonus.food))) /
+            Constants.SQUARED_ONE;
+        uint pearl = plan.pearl * Constants.ACTION_POINT;
+
+        base += rock;
+        base += wood;
+        base += fruit;
+        base += animal;
+        base += fish;
+        base += pearl;
 
         return
             Resources({
-                rock: uint32((plan.rock * Constants.ACTION_POINT) / base),
-                wood: uint32((plan.wood * Constants.ACTION_POINT) / base),
-                fruit: uint32((plan.fruit * Constants.ACTION_POINT) / base),
-                animal: uint32((plan.animal * Constants.ACTION_POINT) / base),
-                fish: uint32((plan.fish * Constants.ACTION_POINT) / base),
-                pearl: uint32((plan.pearl * Constants.ACTION_POINT) / base)
+                rock: uint32(rock / base),
+                wood: uint32(wood / base),
+                fruit: uint32(fruit / base),
+                animal: uint32(animal / base),
+                fish: uint32(fish / base),
+                pearl: uint32(pearl / base)
             });
     }
 
-    // Bonus attack from individual building
-    // 1_000 = 1%
-    function individualAttackBonus(
-        uint32 resource
-    ) public pure returns (uint32 bonusAttackPct) {
-        return 0;
-    }
-
-    // Bonus defense from individual building
-    // 1_000 = 1%
-    function individualDefenseBonus(
-        uint32 resource
-    ) public pure returns (uint32 bonusDefensePct) {
-        return 0;
+    // calculate how many unit of food able to eat
+    function calculateFoodToEat(uint32 maxHp) public pure returns (uint32) {
+        // linear
+        return
+            uint32(
+                Math.min(
+                    Constants.MAX_FOOD_UNIT_CONSUME,
+                    Constants.MIN_FOOD_UNIT_CONSUME +
+                        (maxHp - Constants.INITIAL_HP) *
+                        Constants.FOOD_CONSUME_PER_MAX_HEALTH_SLOPE
+                )
+            );
     }
 }

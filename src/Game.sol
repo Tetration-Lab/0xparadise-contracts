@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./StuffLib.sol";
+import "./BonusLib.sol";
 import "./SystemLib.sol";
 import "./IIslander.sol";
 import "./Constants.sol";
@@ -17,14 +18,14 @@ contract Game {
     event WorldUpdate(World world);
 
     uint256 public randomness;
-    uint public rounds;
+    uint public round;
     IIslander[] islanders;
     mapping(uint => IslanderInfo) islanderInfos;
     World world;
 
     constructor(IIslander[] memory _islanders, uint _randomness) {
         randomness = _randomness;
-        rounds = 0;
+        round = 0;
         islanders = _islanders;
 
         // Initialize world
@@ -307,16 +308,16 @@ contract Game {
                     uint32 damageDealtIfAttack,
                     uint32 damageTakenIfAttack
                 ) = SystemLib.battleDamage(
-                        SystemLib.individualAttackBonus(
+                        BonusLib.individualAttackBonus(
                             islander_self.buildings.atk
                         ),
-                        SystemLib.individualDefenseBonus(
+                        BonusLib.individualDefenseBonus(
                             islander_self.buildings.def
                         ),
-                        SystemLib.individualAttackBonus(
+                        BonusLib.individualAttackBonus(
                             islander_other.buildings.atk
                         ),
-                        SystemLib.individualDefenseBonus(
+                        BonusLib.individualDefenseBonus(
                             islander_other.buildings.def
                         )
                     );
@@ -365,5 +366,66 @@ contract Game {
         }
     }
 
-    function worldUpdate() internal {}
+    function worldUpdate() internal {
+        // Eat food and take disaster
+        for (uint i = 0; i < islanders.length; ++i) {
+            IslanderInfo storage islander = islanderInfos[i];
+
+            // Skip dead islanders
+            if (islander.hp == 0) continue;
+
+            // Eat food
+            {
+                uint32 maxHp = Constants.INITIAL_HP +
+                    BonusLib.individualSurvivalBonus(
+                        islander.buildings.survival
+                    ) +
+                    BonusLib.communitySurvivalBonus(world.buildings.survival);
+
+                // Eat 1 unit of food to prevent hp loss
+                if (islander.resources.food == 0) {
+                    // Lose HEALTH_PER_FOOD_UNIT hp if no food
+                    islander.hp -= uint32(Constants.HEALTH_PER_FOOD_UNIT);
+                } else {
+                    islander.resources.food -= uint32(Constants.ONE);
+
+                    // Eat some food proportional to max hp to recover hp
+                    if (islander.resources.food > uint32(Constants.ONE)) {
+                        uint32 foodAbleToEat = SystemLib.calculateFoodToEat(
+                            maxHp
+                        );
+                        uint32 foodToEat = foodAbleToEat >
+                            islander.resources.food
+                            ? islander.resources.food
+                            : foodAbleToEat;
+                        islander.resources.food -= foodToEat;
+                        islander.hp += uint32(
+                            foodToEat * Constants.HEALTH_PER_FOOD_UNIT
+                        );
+                    }
+                }
+            }
+
+            // TODO: Handle Disaster
+
+            // Increase day lived
+            islander.dayLived += 1;
+        }
+
+        uint deadPplAmt = 0;
+        for (uint i = 0; i < islanders.length; ++i) {
+            if (islanderInfos[i].hp == 0) deadPplAmt += 1;
+        }
+        if (deadPplAmt == islanders.length) {
+            end();
+            return;
+        }
+
+        // TODO: Handle Resource Regen
+
+        // Update world
+        round += 1;
+    }
+
+    function end() internal {}
 }
