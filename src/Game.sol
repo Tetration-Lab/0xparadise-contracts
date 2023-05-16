@@ -26,7 +26,12 @@ contract Game {
         randomness = _randomness;
         rounds = 0;
         islanders = _islanders;
-        for (uint i = 0; i < islanders.length; ++i) {
+
+        // Initialize world
+        generateWorld();
+
+        // Initialize islanders
+        for (uint i = 0; i < _islanders.length; ++i) {
             islanderInfos[i].idx = uint8(i);
             islanderInfos[i].hp = Constants.INITIAL_HP;
             islanderInfos[i].atk = Constants.INITIAL_ATK;
@@ -49,19 +54,26 @@ contract Game {
         return randomness;
     }
 
+    function generateWorld() internal {}
+
     function harvestPhase() internal {
         Resources[] memory harvestPlans = new Resources[](islanders.length);
         Resources memory totalHarvestPoint = Resources(0, 0, 0, 0, 0, 0);
+
+        // Get harvest plan for each islander
         for (uint i = 0; i < islanders.length; ++i) {
             try islanders[i].planHarvest(world, islanderInfos[i]) returns (
                 Resources memory plan
             ) {
+                // Save islander latest harvest plan
                 islanderInfos[i].harvestPlan.push(plan);
+                // Normalize harvest plan with bonus
                 harvestPlans[i] = SystemLib.normalizeWithBonus(
                     plan,
-                    islanderInfos[i].buildingLevel.harvest,
+                    islanderInfos[i].buildings.harvest,
                     world.buildings.harvest
                 );
+                // Sum total harvest point
                 totalHarvestPoint.rock += harvestPlans[i].rock;
                 totalHarvestPoint.wood += harvestPlans[i].wood;
                 totalHarvestPoint.fruit += harvestPlans[i].fruit;
@@ -71,6 +83,8 @@ contract Game {
             } catch {}
         }
 
+        // Calculate harvest per share for each resource
+        // and update world supply and previous harvest stat
         uint32 rockHarvestPerShare = SystemLib.harvestPerShare(
             world.rock.supply,
             totalHarvestPoint.rock
@@ -119,6 +133,7 @@ contract Game {
             totalHarvestPoint.pearl;
         world.pearl.supply -= world.pearl.prevHarvest;
 
+        // Update islander resources
         for (uint i = 0; i < islanders.length; ++i) {
             Resources memory harvestPlan = harvestPlans[i];
             IslanderInfo storage islander = islanderInfos[i];
@@ -136,6 +151,7 @@ contract Game {
     }
 
     function communityBuildPhase() internal {
+        // Get community building plan for each islander
         for (uint i = 0; i < islanders.length; ++i) {
             try
                 islanders[i].planCommunityBuild(world, islanderInfos[i])
@@ -143,6 +159,7 @@ contract Game {
                 IslanderInfo storage islander = islanderInfos[i];
                 Buildings storage worldBuildings = world.buildings;
 
+                // Save islander latest community building plan
                 islander.communityBuildingPlan.push(plan);
 
                 // Upgrade rock harvest using wood
@@ -196,7 +213,67 @@ contract Game {
         }
     }
 
-    function personalBuildPhase() internal {}
+    function personalBuildPhase() internal {
+        // Get personal building plan for each islander
+        for (uint i = 0; i < islanders.length; ++i) {
+            try
+                islanders[i].planPersonalBuild(world, islanderInfos[i])
+            returns (Buildings memory plan) {
+                IslanderInfo storage islander = islanderInfos[i];
+
+                // Save islander latest personal building plan
+                islander.personalBuildingPlan.push(plan);
+
+                // Upgrade rock harvest using wood
+                if (islander.resources.wood >= plan.harvest.rock) {
+                    islander.buildings.harvest.rock += plan.harvest.rock;
+                    islander.resources.rock -= plan.harvest.rock;
+                }
+
+                // Upgrade wood harvest using wood
+                if (islander.resources.wood >= plan.harvest.wood) {
+                    islander.buildings.harvest.wood += plan.harvest.wood;
+                    islander.resources.wood -= plan.harvest.wood;
+                }
+
+                // Upgrade food harvest using wood
+                if (islander.resources.wood >= plan.harvest.food) {
+                    islander.buildings.harvest.food += plan.harvest.food;
+                    islander.resources.wood -= plan.harvest.food;
+                }
+
+                // Upgrade survival using wood
+                if (islander.resources.wood >= plan.survival) {
+                    islander.buildings.survival += plan.survival;
+                    islander.resources.wood -= plan.survival;
+                }
+
+                // Upgrade protection using wood
+                if (islander.resources.wood >= plan.protection) {
+                    islander.buildings.protection += plan.protection;
+                    islander.resources.wood -= plan.protection;
+                }
+
+                // Upgrade statue using rock
+                if (islander.resources.rock >= plan.statue) {
+                    islander.buildings.statue += plan.statue;
+                    islander.resources.rock -= plan.statue;
+                }
+
+                // Upgrade atk using rock
+                if (islander.resources.rock >= plan.atk) {
+                    islander.buildings.atk += plan.atk;
+                    islander.resources.rock -= plan.atk;
+                }
+
+                // Upgrade def using rock
+                if (islander.resources.rock >= plan.def) {
+                    islander.buildings.def += plan.def;
+                    islander.resources.rock -= plan.def;
+                }
+            } catch {}
+        }
+    }
 
     function visitPhase() internal {}
 

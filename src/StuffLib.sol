@@ -14,7 +14,7 @@ struct IslanderInfo {
     uint256 def;
     uint32 pearl;
     ResourcesUnit resources;
-    Buildings buildingLevel;
+    Buildings buildings;
     Resources[] harvestPlan;
     Buildings[] communityBuildingPlan;
     Buildings[] personalBuildingPlan;
