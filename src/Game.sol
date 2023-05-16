@@ -367,6 +367,11 @@ contract Game {
     }
 
     function worldUpdate() internal {
+        (bool isDisasterHit, uint32 disasterDamage) = SystemLib.isDisasterHit(
+            round,
+            nextRandomness()
+        );
+
         // Eat food and take disaster
         for (uint i = 0; i < islanders.length; ++i) {
             IslanderInfo storage islander = islanderInfos[i];
@@ -406,22 +411,32 @@ contract Game {
                 }
             }
 
-            // TODO: Handle Disaster
-
-            // Increase day lived
-            islander.dayLived += 1;
+            // Handle Disaster
+            if (isDisasterHit) {
+                if (disasterDamage >= islander.hp) {
+                    // Dead
+                    islander.hp = 0;
+                } else {
+                    // Survive
+                    islander.hp -= disasterDamage;
+                }
+            }
         }
 
         uint deadPplAmt = 0;
         for (uint i = 0; i < islanders.length; ++i) {
-            if (islanderInfos[i].hp == 0) deadPplAmt += 1;
+            IslanderInfo storage islander = islanderInfos[i];
+            if (islander.hp == 0) {
+                deadPplAmt += 1;
+            } else {
+                // Increase day lived
+                islander.dayLived += 1;
+            }
         }
         if (deadPplAmt == islanders.length) {
             end();
             return;
         }
-
-        // TODO: Handle Resource Regen
 
         // Update world
         round += 1;

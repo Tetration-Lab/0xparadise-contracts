@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 library Constants {
     uint constant ONE = 100;
-    uint constant SQUARED_ONE = 100;
+    uint constant ONE_HUNDRED = 10_000;
     uint constant SQRT_ONE = 10;
 
     uint constant ACTION_POINT = 100_000;
@@ -31,4 +31,9 @@ library Constants {
     uint constant MIN_FOOD_UNIT_CONSUME = 100;
     uint constant FOOD_CONSUME_PER_MAX_HEALTH_SLOPE = 1_000; // 1 food per 10 health
     uint constant HEALTH_PER_FOOD_UNIT = 500; // 1 food = 5 health
+
+    uint constant DISASTER_BASE_DAMAGE = 100;
+    uint constant DISASTER_DAY_DAMAGE_STEP = 5;
+    uint constant DISASTER_BASE_CHANCE = 100; // 1%
+    uint constant DISASTER_CHANCE_PER_DAY_SLOPE = 100; // 1%/d
 }

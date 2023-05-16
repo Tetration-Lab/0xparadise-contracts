@@ -128,34 +128,34 @@ library SystemLib {
 
         uint rock = (plan.rock *
             Constants.ACTION_POINT *
-            (Constants.SQUARED_ONE +
+            (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.rock) +
                 BonusLib.communityHarvestBonus(communityBonus.rock))) /
-            Constants.SQUARED_ONE;
+            Constants.ONE_HUNDRED;
         uint wood = (plan.wood *
             Constants.ACTION_POINT *
-            (Constants.SQUARED_ONE +
+            (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.wood) +
                 BonusLib.communityHarvestBonus(communityBonus.wood))) /
-            Constants.SQUARED_ONE;
+            Constants.ONE_HUNDRED;
         uint fruit = (plan.fruit *
             Constants.ACTION_POINT *
-            (Constants.SQUARED_ONE +
+            (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
-            Constants.SQUARED_ONE;
+            Constants.ONE_HUNDRED;
         uint animal = (plan.animal *
             Constants.ACTION_POINT *
-            (Constants.SQUARED_ONE +
+            (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
-            Constants.SQUARED_ONE;
+            Constants.ONE_HUNDRED;
         uint fish = (plan.fish *
             Constants.ACTION_POINT *
-            (Constants.SQUARED_ONE +
+            (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
-            Constants.SQUARED_ONE;
+            Constants.ONE_HUNDRED;
         uint pearl = plan.pearl * Constants.ACTION_POINT;
 
         base += rock;
@@ -188,5 +188,27 @@ library SystemLib {
                         Constants.FOOD_CONSUME_PER_MAX_HEALTH_SLOPE
                 )
             );
+    }
+
+    // calculate disaster damage
+    function disasterDamage(uint day) public pure returns (uint32) {
+        return
+            uint32(
+                Constants.DISASTER_BASE_DAMAGE *
+                    (day / Constants.DISASTER_DAY_DAMAGE_STEP)
+            );
+    }
+
+    // calculate whether disaster hit or not and damage
+    function isDisasterHit(
+        uint day,
+        uint randomness
+    ) public pure returns (bool, uint32) {
+        uint hitChance = Constants.DISASTER_BASE_CHANCE +
+            (day * Constants.DISASTER_CHANCE_PER_DAY_SLOPE);
+        return (
+            (randomness % Constants.ONE_HUNDRED) < hitChance,
+            disasterDamage(day)
+        );
     }
 }
