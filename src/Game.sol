@@ -50,7 +50,7 @@ contract Game {
     }
 
     function nextRandomness() internal returns (uint) {
-        randomness = uint(keccak256(abi.encode(randomness, world)));
+        randomness = uint(keccak256(abi.encodePacked(randomness, round)));
         return randomness;
     }
 
