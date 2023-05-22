@@ -30,20 +30,22 @@ library BonusLib {
     function individualAttackBonus(
         uint32 resource
     ) public pure returns (uint32) {
-        uint32(
-            (personalBuilding(resource) *
-                Constants.ATTACK_BUILDING_MULTIPLIER) / Constants.ONE
-        );
+        return
+            uint32(
+                (personalBuilding(resource) *
+                    Constants.ATTACK_BUILDING_MULTIPLIER) / Constants.ONE
+            );
     }
 
     // Bonus defense from individual building
     function individualDefenseBonus(
         uint32 resource
     ) public pure returns (uint32) {
-        uint32(
-            (personalBuilding(resource) *
-                Constants.DEFENSE_BUILDING_MULTIPLIER) / Constants.ONE
-        );
+        return
+            uint32(
+                (personalBuilding(resource) *
+                    Constants.DEFENSE_BUILDING_MULTIPLIER) / Constants.ONE
+            );
     }
 
     // Bonus function for harvest by individual building, returns bonus action point for that harvest
