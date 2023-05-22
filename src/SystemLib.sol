@@ -25,13 +25,22 @@ library SystemLib {
         return (dx, dy);
     }
 
+    function lotkaVolterra(
+        uint x,
+        uint y,
+        uint aX,
+        uint aY
+    ) public pure returns (int) {
+        return int((aX * x) / Constants.ONE) - int((aY * y) / Constants.ONE);
+    }
+
     // simulate logistic growth. reuturn dX
     function logisticGrowth(
         uint x, // population
         uint r, // growth rate
         uint k // carrying capacity
-    ) public pure returns (uint) {
-        return (((r * x) / Constants.ONE) * (k - x)) / k;
+    ) public pure returns (int) {
+        return int((r * x) / Constants.ONE) * ((int(k) - int(x)) / int(k));
     }
 
     // simulate production growth with carrying capacity
@@ -210,5 +219,93 @@ library SystemLib {
             (randomness % Constants.ONE_HUNDRED) < hitChance,
             disasterDamage(day)
         );
+    }
+
+    // calculate tree regen using logistic growth from tree and fruit
+    function calculateTreeRegen(
+        uint32 currentTree,
+        uint32 currentFruit
+    ) public pure returns (int32) {
+        int32 regen = int32(
+            logisticGrowth(
+                currentTree,
+                Constants.TREE_GROWTH_RATE_R_T,
+                Constants.TREE_CAPACITY_K_T
+            ) +
+                logisticGrowth(
+                    currentFruit,
+                    Constants.TREE_GROWTH_RATE_FROM_FRUIT_R_F,
+                    Constants.TREE_CAPACITY_FROM_FRUIT_K_F
+                )
+        );
+        if (regen > 0) {
+            return regen;
+        } else {
+            return 0;
+        }
+    }
+
+    // calculate fruit regen using lotkavolterra between tree population and animal population
+    function calculateFruitRegen(
+        uint32 currentTree,
+        uint32 currentFruit,
+        uint32 currentAnimal
+    ) public pure returns (int32) {
+        int32 regen = int32(
+            lotkaVolterra(
+                currentTree,
+                currentAnimal,
+                Constants.FRUIT_REGEN_RATE_LAMBDA,
+                Constants.ANIMAL_FRUIT_CONSUMPTION_RATE_ALPHA
+            ) +
+                logisticGrowth(
+                    currentFruit,
+                    Constants.TREE_GROWTH_RATE_FROM_FRUIT_R_F,
+                    Constants.TREE_CAPACITY_FROM_FRUIT_K_F
+                )
+        );
+        if (regen > 0) {
+            return regen;
+        } else {
+            return 0;
+        }
+    }
+
+    // calculate animal regen using lotkavolterra between fruit population and animal population
+    function calculateAnimalRegen(
+        uint32 currentFruit,
+        uint32 currentAnimal
+    ) public pure returns (int32) {
+        int32 regen = int32(
+            lotkaVolterra(
+                currentFruit,
+                currentAnimal,
+                Constants.ANIMAL_REPRODUCTION_RATE_BETA,
+                Constants.ANIMAL_DEATH_RATE_GAMMA
+            )
+        );
+        if (regen > 0) {
+            return regen;
+        } else {
+            return 0;
+        }
+    }
+
+    // calculate fish regen using logistic growth from fish
+    function calculateFishRegen(
+        uint32 currentFish
+    ) public pure returns (int32) {
+        int32 regen = int32(
+            logisticGrowth(
+                currentFish,
+                Constants.FISH_GROWTH_RATE_R_V,
+                Constants.FISH_CAPACITY_K_V
+            )
+        );
+        if (regen > 0) {
+            return regen;
+        } else {
+            return 0;
+        }
     }
 }

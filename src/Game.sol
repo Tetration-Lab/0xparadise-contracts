@@ -53,7 +53,17 @@ contract Game {
         return randomness;
     }
 
-    function generateWorld() internal {}
+    function generateWorld() internal {
+        world.wood.supply = uint32(Constants.TREE_CAPACITY_K_T);
+        world.fruit.supply = uint32(Constants.TREE_CAPACITY_FROM_FRUIT_K_F);
+        world.animal.supply = uint32(
+            (Constants.ANIMAL_REPRODUCTION_RATE_BETA *
+                Constants.TREE_CAPACITY_FROM_FRUIT_K_F) / Constants.ONE
+        );
+        world.rock.supply = uint32(Constants.ROCK_CAPACITY_K_R);
+        world.fish.supply = uint32(Constants.FISH_CAPACITY_K_V);
+        world.pearl.supply = uint32(Constants.PEARL_CAPACITY_K_P);
+    }
 
     function harvestPhase() internal {
         Resources[] memory harvestPlans = new Resources[](islanders.length);
@@ -433,13 +443,39 @@ contract Game {
                 islander.dayLived += 1;
             }
         }
+
         if (deadPplAmt == islanders.length) {
             end();
             return;
         }
 
-        // Update world
+        // Update world and regen
         round += 1;
+        {
+            int32 woodRegen = SystemLib.calculateTreeRegen(
+                world.wood.supply,
+                world.fruit.supply
+            );
+            int32 fruitRegen = SystemLib.calculateFruitRegen(
+                world.wood.supply,
+                world.fruit.supply,
+                world.animal.supply
+            );
+            int32 animalRegen = SystemLib.calculateAnimalRegen(
+                world.fruit.supply,
+                world.animal.supply
+            );
+            int32 fishRegen = SystemLib.calculateFishRegen(world.fish.supply);
+
+            world.wood.supply += uint32(woodRegen);
+            world.wood.prevRegen = uint32(woodRegen);
+            world.fruit.supply += uint32(fruitRegen);
+            world.fruit.prevRegen = uint32(fruitRegen);
+            world.animal.supply += uint32(animalRegen);
+            world.animal.prevRegen = uint32(animalRegen);
+            world.fish.supply += uint32(fishRegen);
+            world.fish.prevRegen = uint32(fishRegen);
+        }
     }
 
     function end() internal {}

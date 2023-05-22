@@ -36,4 +36,17 @@ library Constants {
     uint constant DISASTER_DAY_DAMAGE_STEP = 5;
     uint constant DISASTER_BASE_CHANCE = 100; // 1%
     uint constant DISASTER_CHANCE_PER_DAY_SLOPE = 100; // 1%/d
+
+    uint constant TREE_GROWTH_RATE_R_T = 100;
+    uint constant TREE_GROWTH_RATE_FROM_FRUIT_R_F = 60;
+    uint constant TREE_CAPACITY_K_T = 4_000;
+    uint constant TREE_CAPACITY_FROM_FRUIT_K_F = 10_000;
+    uint constant FRUIT_REGEN_RATE_LAMBDA = 800;
+    uint constant ANIMAL_FRUIT_CONSUMPTION_RATE_ALPHA = 50;
+    uint constant ANIMAL_REPRODUCTION_RATE_BETA = 10;
+    uint constant ANIMAL_DEATH_RATE_GAMMA = 70;
+    uint constant FISH_GROWTH_RATE_R_V = 50;
+    uint constant FISH_CAPACITY_K_V = 5_000;
+    uint constant ROCK_CAPACITY_K_R = 20_000;
+    uint constant PEARL_CAPACITY_K_P = 10_000;
 }
