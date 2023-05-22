@@ -17,6 +17,7 @@ contract Game {
     event Disaster(uint damage);
     event WorldUpdate(World world);
 
+    bool isEnded;
     uint256 public randomness;
     uint public round;
     IIslander[] islanders;
@@ -30,7 +31,12 @@ contract Game {
         islanders = _islanders;
 
         // Initialize world
-        generateWorld();
+        world.wood.supply = uint32(Constants.INITIAL_TREE);
+        world.rock.supply = uint32(Constants.INITIAL_ROCK);
+        world.fruit.supply = uint32(Constants.INITIAL_FRUIT);
+        world.animal.supply = uint32(Constants.INITIAL_ANIMAL);
+        world.fish.supply = uint32(Constants.INITIAL_FISH);
+        world.pearl.supply = uint32(Constants.INITIAL_PEARL);
 
         // Initialize islanders
         for (uint i = 0; i < _islanders.length; ++i) {
@@ -39,28 +45,21 @@ contract Game {
         }
     }
 
-    function step(uint nStep) public {
-        for (uint i = 0; i < nStep; i++) {
-            harvestPhase();
-            communityBuildPhase();
-            personalBuildPhase();
-            visitPhase();
-            worldUpdate();
-        }
-    }
-
     function nextRandomness() internal returns (uint) {
         randomness = uint(keccak256(abi.encodePacked(randomness, round)));
         return randomness;
     }
 
-    function generateWorld() internal {
-        world.wood.supply = uint32(Constants.INITIAL_TREE);
-        world.rock.supply = uint32(Constants.INITIAL_ROCK);
-        world.fruit.supply = uint32(Constants.INITIAL_FRUIT);
-        world.animal.supply = uint32(Constants.INITIAL_ANIMAL);
-        world.fish.supply = uint32(Constants.INITIAL_FISH);
-        world.pearl.supply = uint32(Constants.INITIAL_PEARL);
+    function step(uint nStep) public {
+        for (uint i = 0; i < nStep; i++) {
+            if (!isEnded) {
+                harvestPhase();
+                communityBuildPhase();
+                personalBuildPhase();
+                visitPhase();
+                worldUpdate();
+            }
+        }
     }
 
     function harvestPhase() internal {
@@ -443,6 +442,7 @@ contract Game {
         }
 
         if (deadPplAmt == islanders.length) {
+            isEnded = true;
             end();
             return;
         }
