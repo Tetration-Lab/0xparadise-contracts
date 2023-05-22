@@ -55,15 +55,12 @@ contract Game {
     }
 
     function generateWorld() internal {
-        world.wood.supply = uint32(Constants.TREE_CAPACITY_K_T);
-        world.fruit.supply = uint32(Constants.TREE_CAPACITY_FROM_FRUIT_K_F);
-        world.animal.supply = uint32(
-            (Constants.ANIMAL_REPRODUCTION_RATE_BETA *
-                Constants.TREE_CAPACITY_FROM_FRUIT_K_F) / Constants.ONE
-        );
-        world.rock.supply = uint32(Constants.ROCK_CAPACITY_K_R);
-        world.fish.supply = uint32(Constants.FISH_CAPACITY_K_V);
-        world.pearl.supply = uint32(Constants.PEARL_CAPACITY_K_P);
+        world.wood.supply = uint32(Constants.INITIAL_TREE);
+        world.rock.supply = uint32(Constants.INITIAL_ROCK);
+        world.fruit.supply = uint32(Constants.INITIAL_FRUIT);
+        world.animal.supply = uint32(Constants.INITIAL_ANIMAL);
+        world.fish.supply = uint32(Constants.INITIAL_FISH);
+        world.pearl.supply = uint32(Constants.INITIAL_PEARL);
     }
 
     function harvestPhase() internal {

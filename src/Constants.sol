@@ -47,8 +47,13 @@ library Constants {
     uint constant ANIMAL_DEATH_RATE_GAMMA = 70;
     uint constant FISH_GROWTH_RATE_R_V = 50;
     uint constant FISH_CAPACITY_K_V = 5_000;
-    uint constant ROCK_CAPACITY_K_R = 20_000;
-    uint constant PEARL_CAPACITY_K_P = 10_000;
+
+    uint constant INITIAL_TREE = 10_000;
+    uint constant INITIAL_ROCK = 20_000;
+    uint constant INITIAL_FRUIT = 2_000;
+    uint constant INITIAL_ANIMAL = 3_000;
+    uint constant INITIAL_FISH = 5_000;
+    uint constant INITIAL_PEARL = 10_000;
 
     uint constant POINT_PER_DAY_LIVED = 1_000;
     uint constant POINT_PER_PEARL = 1_000;
