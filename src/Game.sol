@@ -170,6 +170,7 @@ contract Game {
     function communityBuildPhase() internal {
         // Get community building plan for each islander
         for (uint i = 0; i < islanders.length; ++i) {
+            if (islanderInfos[i].hp == 0) continue;
             try
                 islanders[i].planCommunityBuild(world, islanderInfos[i])
             returns (Buildings memory plan) {
@@ -237,6 +238,7 @@ contract Game {
     function personalBuildPhase() internal {
         // Get personal building plan for each islander
         for (uint i = 0; i < islanders.length; ++i) {
+            if (islanderInfos[i].hp == 0) continue;
             try
                 islanders[i].planPersonalBuild(world, islanderInfos[i])
             returns (Buildings memory plan) {
