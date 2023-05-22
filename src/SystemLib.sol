@@ -136,36 +136,31 @@ library SystemLib {
         uint base = 0;
 
         uint rock = (plan.rock *
-            Constants.ACTION_POINT *
             (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.rock) +
                 BonusLib.communityHarvestBonus(communityBonus.rock))) /
             Constants.ONE_HUNDRED;
         uint wood = (plan.wood *
-            Constants.ACTION_POINT *
             (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.wood) +
                 BonusLib.communityHarvestBonus(communityBonus.wood))) /
             Constants.ONE_HUNDRED;
         uint fruit = (plan.fruit *
-            Constants.ACTION_POINT *
             (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
             Constants.ONE_HUNDRED;
         uint animal = (plan.animal *
-            Constants.ACTION_POINT *
             (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
             Constants.ONE_HUNDRED;
         uint fish = (plan.fish *
-            Constants.ACTION_POINT *
             (Constants.ONE_HUNDRED +
                 BonusLib.individualHarvestBonus(individualBonus.food) +
                 BonusLib.communityHarvestBonus(communityBonus.food))) /
             Constants.ONE_HUNDRED;
-        uint pearl = plan.pearl * Constants.ACTION_POINT;
+        uint pearl = plan.pearl;
 
         base += rock;
         base += wood;
@@ -176,12 +171,12 @@ library SystemLib {
 
         return
             Resources({
-                rock: uint32(rock / base),
-                wood: uint32(wood / base),
-                fruit: uint32(fruit / base),
-                animal: uint32(animal / base),
-                fish: uint32(fish / base),
-                pearl: uint32(pearl / base)
+                rock: uint32((rock * Constants.ACTION_POINT) / base),
+                wood: uint32((wood * Constants.ACTION_POINT) / base),
+                fruit: uint32((fruit * Constants.ACTION_POINT) / base),
+                animal: uint32((animal * Constants.ACTION_POINT) / base),
+                fish: uint32((fish * Constants.ACTION_POINT) / base),
+                pearl: uint32((pearl * Constants.ACTION_POINT) / base)
             });
     }
 
