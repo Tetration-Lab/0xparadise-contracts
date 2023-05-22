@@ -21,6 +21,7 @@ contract Game {
     uint public round;
     IIslander[] islanders;
     mapping(uint => IslanderInfo) islanderInfos;
+    mapping(uint => uint) scores;
     World world;
 
     constructor(IIslander[] memory _islanders, uint _randomness) {
@@ -478,5 +479,22 @@ contract Game {
         }
     }
 
-    function end() internal {}
+    function end() internal {
+        uint communityScore = world.buildings.statue *
+            Constants.POINT_PER_STATUE +
+            (world.buildings.survival +
+                world.buildings.protection +
+                world.buildings.harvest.food +
+                world.buildings.harvest.rock +
+                world.buildings.harvest.wood) *
+            Constants.POINT_PER_BUILDING;
+        for (uint i = 0; i < islanders.length; ++i) {
+            IslanderInfo storage islander = islanderInfos[i];
+            uint personalScore = islander.pearl *
+                Constants.POINT_PER_PEARL +
+                islander.dayLived *
+                Constants.POINT_PER_DAY_LIVED;
+            scores[i] = communityScore + personalScore;
+        }
+    }
 }

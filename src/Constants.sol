@@ -49,4 +49,9 @@ library Constants {
     uint constant FISH_CAPACITY_K_V = 5_000;
     uint constant ROCK_CAPACITY_K_R = 20_000;
     uint constant PEARL_CAPACITY_K_P = 10_000;
+
+    uint constant POINT_PER_DAY_LIVED = 1_000;
+    uint constant POINT_PER_PEARL = 1_000;
+    uint constant POINT_PER_BUILDING = 100;
+    uint constant POINT_PER_STATUE = 200;
 }
