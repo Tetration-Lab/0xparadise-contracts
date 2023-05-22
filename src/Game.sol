@@ -17,10 +17,12 @@ contract Game {
     event Disaster(uint damage);
     event WorldUpdate(World world);
 
+    bool isEnded;
     uint256 public randomness;
     uint public round;
     IIslander[] islanders;
     mapping(uint => IslanderInfo) islanderInfos;
+    mapping(uint => uint) scores;
     World world;
 
     constructor(IIslander[] memory _islanders, uint _randomness) {
@@ -29,7 +31,12 @@ contract Game {
         islanders = _islanders;
 
         // Initialize world
-        generateWorld();
+        world.wood.supply = uint32(Constants.INITIAL_TREE);
+        world.rock.supply = uint32(Constants.INITIAL_ROCK);
+        world.fruit.supply = uint32(Constants.INITIAL_FRUIT);
+        world.animal.supply = uint32(Constants.INITIAL_ANIMAL);
+        world.fish.supply = uint32(Constants.INITIAL_FISH);
+        world.pearl.supply = uint32(Constants.INITIAL_PEARL);
 
         // Initialize islanders
         for (uint i = 0; i < _islanders.length; ++i) {
@@ -38,31 +45,21 @@ contract Game {
         }
     }
 
-    function step(uint nStep) public {
-        for (uint i = 0; i < nStep; i++) {
-            harvestPhase();
-            communityBuildPhase();
-            personalBuildPhase();
-            visitPhase();
-            worldUpdate();
-        }
-    }
-
     function nextRandomness() internal returns (uint) {
-        randomness = uint(keccak256(abi.encode(randomness, world)));
+        randomness = uint(keccak256(abi.encodePacked(randomness, round)));
         return randomness;
     }
 
-    function generateWorld() internal {
-        world.wood.supply = uint32(Constants.TREE_CAPACITY_K_T);
-        world.fruit.supply = uint32(Constants.TREE_CAPACITY_FROM_FRUIT_K_F);
-        world.animal.supply = uint32(
-            (Constants.ANIMAL_REPRODUCTION_RATE_BETA *
-                Constants.TREE_CAPACITY_FROM_FRUIT_K_F) / Constants.ONE
-        );
-        world.rock.supply = uint32(Constants.ROCK_CAPACITY_K_R);
-        world.fish.supply = uint32(Constants.FISH_CAPACITY_K_V);
-        world.pearl.supply = uint32(Constants.PEARL_CAPACITY_K_P);
+    function step(uint nStep) public {
+        for (uint i = 0; i < nStep; i++) {
+            if (!isEnded) {
+                harvestPhase();
+                communityBuildPhase();
+                personalBuildPhase();
+                visitPhase();
+                worldUpdate();
+            }
+        }
     }
 
     function harvestPhase() internal {
@@ -445,6 +442,7 @@ contract Game {
         }
 
         if (deadPplAmt == islanders.length) {
+            isEnded = true;
             end();
             return;
         }
@@ -478,5 +476,22 @@ contract Game {
         }
     }
 
-    function end() internal {}
+    function end() internal {
+        uint communityScore = world.buildings.statue *
+            Constants.POINT_PER_STATUE +
+            (world.buildings.survival +
+                world.buildings.protection +
+                world.buildings.harvest.food +
+                world.buildings.harvest.rock +
+                world.buildings.harvest.wood) *
+            Constants.POINT_PER_BUILDING;
+        for (uint i = 0; i < islanders.length; ++i) {
+            IslanderInfo storage islander = islanderInfos[i];
+            uint personalScore = islander.pearl *
+                Constants.POINT_PER_PEARL +
+                islander.dayLived *
+                Constants.POINT_PER_DAY_LIVED;
+            scores[i] = communityScore + personalScore;
+        }
+    }
 }
