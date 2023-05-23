@@ -44,6 +44,16 @@ contract IslanderRegistry {
         return _islanders[name];
     }
 
+    function getIslanderByIndex(
+        uint index
+    ) public view returns (address islanderContract) {
+        return _islandersSet.at(index);
+    }
+
+    function totalIslander() public view returns (uint) {
+        return _islandersSet.length();
+    }
+
     function getIslanderOwner(
         string calldata name
     ) public view returns (address owner) {
